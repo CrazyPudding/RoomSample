@@ -3,9 +3,9 @@ package com.crazypudding.jetpack.roomsample.db.entity;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 
-@Entity
+@Entity(tableName = "place")
 public class PlaceEntity {
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     private int id;
     private String description;
 
