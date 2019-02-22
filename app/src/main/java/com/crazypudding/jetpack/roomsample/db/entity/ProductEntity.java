@@ -3,6 +3,7 @@ package com.crazypudding.jetpack.roomsample.db.entity;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
 
@@ -19,11 +20,22 @@ public class ProductEntity {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private String name;
+    private double price;
     @ColumnInfo(name = "purchase_date")
     private Date purchaseDate;
     @ColumnInfo(name = "place_id")
-    private int placeId;
-    private long price;
+    private long placeId;
+
+    public ProductEntity() {
+    }
+
+    @Ignore
+    public ProductEntity(String name, double price, Date purchaseDate, long placeId) {
+        this.name = name;
+        this.purchaseDate = purchaseDate;
+        this.placeId = placeId;
+        this.price = price;
+    }
 
     public int getId() {
         return id;
@@ -49,19 +61,19 @@ public class ProductEntity {
         this.purchaseDate = purchaseDate;
     }
 
-    public int getPlaceId() {
+    public long getPlaceId() {
         return placeId;
     }
 
-    public void setPlaceId(int placeId) {
+    public void setPlaceId(long placeId) {
         this.placeId = placeId;
     }
 
-    public long getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(long price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 }

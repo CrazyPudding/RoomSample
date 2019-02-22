@@ -30,4 +30,16 @@ public class AppExecutors {
             mainThreadHandler.post(command);
         }
     }
+
+    public Executor getDiskIO() {
+        return mDiskIO;
+    }
+
+    public Executor getNetworkIO() {
+        return mNetworkIO;
+    }
+
+    public Executor getMainThread() {
+        return mMainThread;
+    }
 }
