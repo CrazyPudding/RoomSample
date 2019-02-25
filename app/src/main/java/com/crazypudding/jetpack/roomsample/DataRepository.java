@@ -7,6 +7,7 @@ import com.crazypudding.jetpack.roomsample.db.AppDatabase;
 import com.crazypudding.jetpack.roomsample.db.entity.PlaceEntity;
 import com.crazypudding.jetpack.roomsample.db.entity.ProductEntity;
 import com.crazypudding.jetpack.roomsample.modle.ProductWithPlace;
+import com.crazypudding.jetpack.roomsample.modle.ProductWithPlaceEntity;
 
 import java.util.List;
 
@@ -80,6 +81,35 @@ public class DataRepository {
                         }
                     }
                 });
+            }
+        });
+    }
+
+    public void getProductWithPlaceById(final int productId, final GetDatasCallback<ProductWithPlaceEntity> callback) {
+        appExecutors.getDiskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                final ProductWithPlaceEntity data = mDb.productDao().getProductWithPlaceById(productId);
+                appExecutors.getMainThread().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (data != null) {
+                            callback.onDataLoaded(data);
+                        } else {
+                            callback.onDataNotAvailable();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    public void updateProduct(final ProductEntity product, final ActionCallback<Integer> callback) {
+        appExecutors.getDiskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                final int updatedId = mDb.productDao().updateProduct(product);
+                callback.onActionDone(updatedId);
             }
         });
     }

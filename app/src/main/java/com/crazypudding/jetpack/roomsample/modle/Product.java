@@ -9,6 +9,7 @@ import java.util.Date;
 
 @TypeConverters(DateConverter.class)
 public class Product {
+    private int id;
     @ColumnInfo(name = "name")
     private String productName;
     @ColumnInfo(name = "price")
@@ -38,5 +39,13 @@ public class Product {
 
     public void setPurchaseDate(Date purchaseDate) {
         this.purchaseDate = purchaseDate;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

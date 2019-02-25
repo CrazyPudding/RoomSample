@@ -6,15 +6,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.crazypudding.jetpack.roomsample.ActionCallback;
 import com.crazypudding.jetpack.roomsample.DataRepository;
+import com.crazypudding.jetpack.roomsample.GetDatasCallback;
 import com.crazypudding.jetpack.roomsample.R;
 import com.crazypudding.jetpack.roomsample.db.entity.PlaceEntity;
 import com.crazypudding.jetpack.roomsample.db.entity.ProductEntity;
+import com.crazypudding.jetpack.roomsample.modle.Place;
+import com.crazypudding.jetpack.roomsample.modle.ProductWithPlaceEntity;
 import com.crazypudding.jetpack.roomsample.ui.DatePickerFragment;
 import com.crazypudding.jetpack.roomsample.util.DateUtil;
 
@@ -31,11 +35,23 @@ public class EditResActivity extends AppCompatActivity {
     private DataRepository mDataRepo;
     private Date mPurchaseDate;
     private boolean mDateFocused;
+    public static final String TAG_PRODUCT_ID = "com.crazypudding.jetpack.roomsample.ui.productid";
+    private int mProductId;
+    private boolean mRecordHasChanged = false;
+    private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            mRecordHasChanged = true;
+            return false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_res);
+
+        mProductId = getIntent().getIntExtra(TAG_PRODUCT_ID, -1);
 
         mDataRepo = DataRepository.getInstance(this.getApplicationContext());
 
@@ -47,7 +63,6 @@ public class EditResActivity extends AppCompatActivity {
                 finish();
             }
         });
-        mToolbar.setTitle(R.string.title_add_res);
         mToolbar.inflateMenu(R.menu.menu_editor);
         mToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -71,6 +86,10 @@ public class EditResActivity extends AppCompatActivity {
         mEtPrice = findViewById(R.id.et_product_price);
         mEtPlace = findViewById(R.id.et_place);
         mEtDate = findViewById(R.id.et_purchase_date);
+        mEtName.setOnTouchListener(mTouchListener);
+        mEtPrice.setOnTouchListener(mTouchListener);
+        mEtPlace.setOnTouchListener(mTouchListener);
+        mEtDate.setOnTouchListener(mTouchListener);
         mEtDate.setKeyListener(null);
         mEtDate.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -89,6 +108,14 @@ public class EditResActivity extends AppCompatActivity {
                 }
             }
         });
+
+        if (mProductId == -1) {
+            mToolbar.getMenu().findItem(R.id.action_del).setVisible(false);
+            mToolbar.setTitle(R.string.title_editor_res);
+        } else {
+            mToolbar.setTitle(R.string.title_add_res);
+            populateData();
+        }
     }
 
     private void showDatePicker() {
@@ -133,22 +160,60 @@ public class EditResActivity extends AppCompatActivity {
             placeId = -1;
         }
 
-        PlaceEntity place = new PlaceEntity(placeId, pPlace);
-        ProductEntity product = new ProductEntity(pName, Double.valueOf(pPrice), pDate,  placeId);
+        if (mProductId == -1) {
+            // 保存
+            PlaceEntity place = new PlaceEntity(placeId, pPlace);
+            ProductEntity product = new ProductEntity(pName, Double.valueOf(pPrice), pDate, placeId);
 
-        mDataRepo.saveProductAndPlace(place, product, new ActionCallback<Long>() {
-            @Override
-            public void onActionDone(Long arg) {
-                if (arg == 0) {
-                    Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_fail), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_success), Toast.LENGTH_SHORT).show();
+            mDataRepo.saveProductAndPlace(place, product, new ActionCallback<Long>() {
+                @Override
+                public void onActionDone(Long arg) {
+                    if (arg == 0) {
+                        Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_fail), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_success), Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            // 更新
+            
+        }
     }
 
     private void deleteRecord() {
 
+    }
+
+    private void populateData() {
+        mDataRepo.getProductWithPlaceById(mProductId, new GetDatasCallback<ProductWithPlaceEntity>() {
+            @Override
+            public void onDataLoaded(ProductWithPlaceEntity datas) {
+                ProductEntity product = datas.getProduct();
+                if (product != null) {
+                    if (!TextUtils.isEmpty(product.getName())) {
+                        mEtName.setText(product.getName());
+                    }
+                    if (product.getPrice() != -1) {
+                        mEtPrice.setText(String.valueOf(product.getPrice()));
+                    }
+                    if (product.getPurchaseDate() != null) {
+                        mEtDate.setText(DateUtil.toString(product.getPurchaseDate()));
+                    }
+                }
+                Place place = datas.getPlace();
+                if (place != null) {
+                    if (!TextUtils.isEmpty(place.getDescription())) {
+                        mEtPlace.setText(place.getDescription());
+                    }
+                }
+            }
+
+            @Override
+            public void onDataNotAvailable() {
+                Toast.makeText(EditResActivity.this, R.string.toast_data_error, Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
     }
 }
