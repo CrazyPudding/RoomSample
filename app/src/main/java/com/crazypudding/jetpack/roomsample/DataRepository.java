@@ -33,16 +33,22 @@ public class DataRepository {
     }
 
     @Transaction
-    public void saveProductAndPlace(final PlaceEntity place, final ProductEntity product) {
+    public void saveProductAndPlace(final PlaceEntity place, final ProductEntity product, ActionCallback<Long> callback) {
         savePlace(place);
-        saveProduct(product);
+        saveProduct(product, callback);
     }
 
-    public void saveProduct(final ProductEntity product) {
+    public void saveProduct(final ProductEntity product, final ActionCallback<Long> callback) {
         appExecutors.getDiskIO().execute(new Runnable() {
             @Override
             public void run() {
-                mDb.productDao().insertRecord(product);
+                final long rowId = mDb.productDao().insertRecord(product);
+                appExecutors.getMainThread().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onActionDone(rowId);
+                    }
+                });
             }
         });
     }
@@ -54,5 +60,9 @@ public class DataRepository {
                 mDb.placeDao().insertRecord(place);
             }
         });
+    }
+
+    public void deleteProduct(final ProductEntity product) {
+
     }
 }

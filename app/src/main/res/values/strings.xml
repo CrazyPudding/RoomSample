@@ -11,6 +11,8 @@
     <string name="label_purchase_date">购买日期</string>
     <string name="label_product_place">存放地点</string>
     <string name="error_field_null">不可为空</string>
+    <string name="toast_insert_success">保存成功</string>
+    <string name="toast_insert_fail">保存失败</string>
 
     <!-- 菜单 -->
     <string name="menu_search">搜索</string>

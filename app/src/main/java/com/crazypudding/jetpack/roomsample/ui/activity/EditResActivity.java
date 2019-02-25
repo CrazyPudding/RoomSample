@@ -8,7 +8,9 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
+import com.crazypudding.jetpack.roomsample.ActionCallback;
 import com.crazypudding.jetpack.roomsample.DataRepository;
 import com.crazypudding.jetpack.roomsample.R;
 import com.crazypudding.jetpack.roomsample.db.entity.PlaceEntity;
@@ -124,7 +126,16 @@ public class EditResActivity extends AppCompatActivity {
         PlaceEntity place = new PlaceEntity(placeId, pPlace);
         ProductEntity product = new ProductEntity(pName, Double.valueOf(pPrice), pDate,  placeId);
 
-        mDataRepo.saveProductAndPlace(place, product);
+        mDataRepo.saveProductAndPlace(place, product, new ActionCallback<Long>() {
+            @Override
+            public void onActionDone(Long arg) {
+                if (arg == 0) {
+                    Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_fail), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_success), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void deleteRecord() {
