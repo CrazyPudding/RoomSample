@@ -6,6 +6,9 @@ import android.content.Context;
 import com.crazypudding.jetpack.roomsample.db.AppDatabase;
 import com.crazypudding.jetpack.roomsample.db.entity.PlaceEntity;
 import com.crazypudding.jetpack.roomsample.db.entity.ProductEntity;
+import com.crazypudding.jetpack.roomsample.modle.ProductWithPlace;
+
+import java.util.List;
 
 /**
  * 统一处理数据
@@ -62,7 +65,37 @@ public class DataRepository {
         });
     }
 
-    public void deleteProduct(final ProductEntity product) {
+    public void getProductsWithPlace(final GetDatasCallback<List<ProductWithPlace>> callback) {
+        appExecutors.getDiskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                final List<ProductWithPlace> datas = mDb.productDao().getProductsWithPlace();
+                appExecutors.getMainThread().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (datas != null && datas.size() > 0) {
+                            callback.onDataLoaded(datas);
+                        } else {
+                            callback.onDataNotAvailable();
+                        }
+                    }
+                });
+            }
+        });
+    }
 
+    public void deleteProduct(final ProductEntity product, final ActionCallback<Integer> callback) {
+        appExecutors.getDiskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                final int delId = mDb.productDao().deleteRecord(product);
+                appExecutors.getMainThread().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onActionDone(delId);
+                    }
+                });
+            }
+        });
     }
 }

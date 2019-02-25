@@ -30,6 +30,7 @@ public class EditResActivity extends AppCompatActivity {
     private EditText mEtPlace;
     private DataRepository mDataRepo;
     private Date mPurchaseDate;
+    private boolean mDateFocused;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +76,15 @@ public class EditResActivity extends AppCompatActivity {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
+                    mDateFocused = true;
+                    showDatePicker();
+                }
+            }
+        });
+        mEtDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDateFocused) {
                     showDatePicker();
                 }
             }
