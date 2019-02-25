@@ -8,13 +8,15 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.crazypudding.jetpack.roomsample.DataRepository;
 import com.crazypudding.jetpack.roomsample.R;
 import com.crazypudding.jetpack.roomsample.db.entity.PlaceEntity;
 import com.crazypudding.jetpack.roomsample.db.entity.ProductEntity;
+import com.crazypudding.jetpack.roomsample.ui.DatePickerFragment;
+import com.crazypudding.jetpack.roomsample.util.DateUtil;
 
+import java.util.Calendar;
 import java.util.Date;
 
 public class EditResActivity extends AppCompatActivity {
@@ -25,6 +27,7 @@ public class EditResActivity extends AppCompatActivity {
     private EditText mEtDate;
     private EditText mEtPlace;
     private DataRepository mDataRepo;
+    private Date mPurchaseDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +53,7 @@ public class EditResActivity extends AppCompatActivity {
                     case R.id.action_done:
                         // 保存操作
                         saveRecord();
+                        finish();
                         return true;
                     case R.id.action_del:
                         // 删除记录
@@ -69,8 +73,22 @@ public class EditResActivity extends AppCompatActivity {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
-                    Toast.makeText(EditResActivity.this, "hello", Toast.LENGTH_SHORT).show();
+                    showDatePicker();
                 }
+            }
+        });
+    }
+
+    private void showDatePicker() {
+        DatePickerFragment datePickerFragment = new DatePickerFragment();
+        datePickerFragment.show(getSupportFragmentManager(), "datePicker");
+        datePickerFragment.setListener(new DatePickerFragment.OnDateSetListener() {
+            @Override
+            public void onDateSet(int year, int month, int dayOfMonth) {
+                Calendar c = Calendar.getInstance();
+                c.set(year, month, dayOfMonth);
+                mPurchaseDate = c.getTime();
+                mEtDate.setText(DateUtil.toString(mPurchaseDate));
             }
         });
     }
@@ -78,11 +96,10 @@ public class EditResActivity extends AppCompatActivity {
     private void saveRecord() {
         String pName = mEtName.getText().toString().trim();
         String pPrice = mEtPrice.getText().toString().trim();
-        String date = mEtDate.getText().toString().trim();
         String pPlace = mEtPlace.getText().toString().trim();
         Date pDate = new Date();
 
-        if (TextUtils.isEmpty(pName) && TextUtils.isEmpty(pPrice) && TextUtils.isEmpty(date) && TextUtils.isEmpty(pPlace)) {
+        if (TextUtils.isEmpty(pName) && TextUtils.isEmpty(pPrice) && mPurchaseDate == null && TextUtils.isEmpty(pPlace)) {
             return;
         }
 
@@ -91,12 +108,23 @@ public class EditResActivity extends AppCompatActivity {
             return;
         }
 
+        if (TextUtils.isEmpty(pPrice)) {
+            pPrice = "-1";
+        }
+
+        if (mPurchaseDate != null) {
+            pDate = mPurchaseDate;
+        }
+
         long placeId = SystemClock.elapsedRealtime();
+        if (TextUtils.isEmpty(pPlace)) {
+            placeId = -1;
+        }
+
         PlaceEntity place = new PlaceEntity(placeId, pPlace);
         ProductEntity product = new ProductEntity(pName, Double.valueOf(pPrice), pDate,  placeId);
 
         mDataRepo.saveProductAndPlace(place, product);
-
     }
 
     private void deleteRecord() {

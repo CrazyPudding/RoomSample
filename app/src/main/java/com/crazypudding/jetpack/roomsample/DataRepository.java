@@ -32,7 +32,6 @@ public class DataRepository {
         return sInstance;
     }
 
-
     @Transaction
     public void saveProductAndPlace(final PlaceEntity place, final ProductEntity product) {
         savePlace(place);
