@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
 
         mToolbar = findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.app_name);
-        mToolbar.inflateMenu(R.menu.menu_main);
         mRvRes = findViewById(R.id.rv_res);
         mTvLoadHint = findViewById(R.id.tv_load_hint);
         mTvLoadHint.setText(R.string.string_loading_hint);
