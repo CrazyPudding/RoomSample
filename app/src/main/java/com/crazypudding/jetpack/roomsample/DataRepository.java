@@ -50,7 +50,9 @@ public class DataRepository {
                 appExecutors.getMainThread().execute(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onActionDone(rowId);
+                        if (callback != null) {
+                            callback.onActionDone(rowId);
+                        }
                     }
                 });
             }
@@ -74,6 +76,9 @@ public class DataRepository {
                 appExecutors.getMainThread().execute(new Runnable() {
                     @Override
                     public void run() {
+                        if (callback == null) {
+                            return;
+                        }
                         if (datas != null && datas.size() > 0) {
                             callback.onDataLoaded(datas);
                         } else {
@@ -93,6 +98,9 @@ public class DataRepository {
                 appExecutors.getMainThread().execute(new Runnable() {
                     @Override
                     public void run() {
+                        if (callback == null) {
+                            return;
+                        }
                         if (data != null) {
                             callback.onDataLoaded(data);
                         } else {
@@ -109,7 +117,21 @@ public class DataRepository {
             @Override
             public void run() {
                 final int updatedId = mDb.productDao().updateProduct(product);
-                callback.onActionDone(updatedId);
+                if (callback != null) {
+                    callback.onActionDone(updatedId);
+                }
+            }
+        });
+    }
+
+    public void updatePlace(final PlaceEntity place, final ActionCallback<Integer> callback) {
+        appExecutors.getDiskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                final int updateId = mDb.placeDao().updatePlace(place);
+                if (callback != null) {
+                    callback.onActionDone(updateId);
+                }
             }
         });
     }
@@ -122,7 +144,9 @@ public class DataRepository {
                 appExecutors.getMainThread().execute(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onActionDone(delId);
+                        if (callback != null) {
+                            callback.onActionDone(delId);
+                        }
                     }
                 });
             }

@@ -1,7 +1,9 @@
 package com.crazypudding.jetpack.roomsample.ui.activity;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -34,9 +36,11 @@ public class EditResActivity extends AppCompatActivity {
     private EditText mEtPlace;
     private DataRepository mDataRepo;
     private Date mPurchaseDate;
+    private String mPlaceDesc;
+    private int mProductId;
+    private ProductEntity mProduct;
     private boolean mDateFocused;
     public static final String TAG_PRODUCT_ID = "com.crazypudding.jetpack.roomsample.ui.productid";
-    private int mProductId;
     private boolean mRecordHasChanged = false;
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
         @Override
@@ -60,7 +64,12 @@ public class EditResActivity extends AppCompatActivity {
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                showChangeDialog(new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        onBackPressed();
+                    }
+                });
             }
         });
         mToolbar.inflateMenu(R.menu.menu_editor);
@@ -177,34 +186,92 @@ public class EditResActivity extends AppCompatActivity {
             });
         } else {
             // 更新
-            
+            if (mRecordHasChanged) {
+                if (!mPlaceDesc.equals(pPlace)) {
+                    PlaceEntity placeEntity = new PlaceEntity(placeId, mPlaceDesc);
+                    placeId = mProduct.getPlaceId();
+                    mDataRepo.updatePlace(placeEntity, null);
+                }
+                ProductEntity productEntity = new ProductEntity(pName, Double.valueOf(pPrice), pDate, placeId);
+                mDataRepo.updateProduct(productEntity, new ActionCallback<Integer>() {
+                    @Override
+                    public void onActionDone(Integer arg) {
+                        if (arg == 0) {
+                            Toast.makeText(EditResActivity.this, getString(R.string.toast_update_fail), Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(EditResActivity.this, getString(R.string.toast_update_success), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
         }
     }
 
-    private void deleteRecord() {
+    @Override
+    public void onBackPressed() {
+        if (!mRecordHasChanged) {
+            super.onBackPressed();
+        } else {
+            showChangeDialog(new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+        }
+    }
 
+    private void showChangeDialog(DialogInterface.OnClickListener discardButtonClickListener) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("是否放弃编辑？")
+                .setPositiveButton("放弃", discardButtonClickListener)
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (dialog != null) {
+                            dialog.dismiss();
+                        }
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void deleteRecord() {
+        mDataRepo.deleteProduct(mProduct, new ActionCallback<Integer>() {
+            @Override
+            public void onActionDone(Integer arg) {
+                if (arg == 0) {
+                    Toast.makeText(EditResActivity.this, getString(R.string.toast_delete_fail), Toast.LENGTH_SHORT).show();
+                } else {
+                    finish();
+                    Toast.makeText(EditResActivity.this, getString(R.string.toast_delete_success), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void populateData() {
         mDataRepo.getProductWithPlaceById(mProductId, new GetDatasCallback<ProductWithPlaceEntity>() {
             @Override
             public void onDataLoaded(ProductWithPlaceEntity datas) {
-                ProductEntity product = datas.getProduct();
-                if (product != null) {
-                    if (!TextUtils.isEmpty(product.getName())) {
-                        mEtName.setText(product.getName());
+                mProduct = datas.getProduct();
+                if (mProduct != null) {
+                    if (!TextUtils.isEmpty(mProduct.getName())) {
+                        mEtName.setText(mProduct.getName());
                     }
-                    if (product.getPrice() != -1) {
-                        mEtPrice.setText(String.valueOf(product.getPrice()));
+                    if (mProduct.getPrice() != -1) {
+                        mEtPrice.setText(String.valueOf(mProduct.getPrice()));
                     }
-                    if (product.getPurchaseDate() != null) {
-                        mEtDate.setText(DateUtil.toString(product.getPurchaseDate()));
+                    if (mProduct.getPurchaseDate() != null) {
+                        mEtDate.setText(DateUtil.toString(mProduct.getPurchaseDate()));
                     }
                 }
                 Place place = datas.getPlace();
                 if (place != null) {
                     if (!TextUtils.isEmpty(place.getDescription())) {
-                        mEtPlace.setText(place.getDescription());
+                        mPlaceDesc = place.getDescription();
+                        mEtPlace.setText(mPlaceDesc);
                     }
                 }
             }

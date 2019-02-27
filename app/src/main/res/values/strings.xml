@@ -17,6 +17,10 @@
     <string name="error_field_null">不可为空</string>
     <string name="toast_insert_success">保存成功</string>
     <string name="toast_insert_fail">保存失败</string>
+    <string name="toast_update_success">更新成功</string>
+    <string name="toast_update_fail">更新失败</string>
+    <string name="toast_delete_success">删除成功</string>
+    <string name="toast_delete_fail">删除失败</string>
     <string name="toast_data_error">数据错误</string>
 
     <!-- 菜单 -->
