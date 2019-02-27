@@ -39,12 +39,7 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new RecordAdapter(this);
         mRvRes.setAdapter(mAdapter);
 
-        findViewById(R.id.fab_add).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addRes();
-            }
-        });
+        findViewById(R.id.fab_add).setOnClickListener(v -> addRes());
 
         mDataRepo = DataRepository.getInstance(this);
     }

@@ -7,13 +7,10 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.crazypudding.jetpack.roomsample.ActionCallback;
 import com.crazypudding.jetpack.roomsample.DataRepository;
 import com.crazypudding.jetpack.roomsample.GetDatasCallback;
 import com.crazypudding.jetpack.roomsample.R;
@@ -42,12 +39,9 @@ public class EditResActivity extends AppCompatActivity {
     private boolean mDateFocused;
     public static final String TAG_PRODUCT_ID = "com.crazypudding.jetpack.roomsample.ui.productid";
     private boolean mRecordHasChanged = false;
-    private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            mRecordHasChanged = true;
-            return false;
-        }
+    private View.OnTouchListener mTouchListener = (v, event) -> {
+        mRecordHasChanged = true;
+        return false;
     };
 
     @Override
@@ -61,34 +55,21 @@ public class EditResActivity extends AppCompatActivity {
 
         mToolbar = findViewById(R.id.toolbar);
         mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
-        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showChangeDialog(new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        onBackPressed();
-                    }
-                });
-            }
-        });
+        mToolbar.setNavigationOnClickListener(v -> showChangeDialog((dialog, which) -> onBackPressed()));
         mToolbar.inflateMenu(R.menu.menu_editor);
-        mToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                switch (menuItem.getItemId()) {
-                    case R.id.action_done:
-                        // 保存操作
-                        saveRecord();
-                        finish();
-                        return true;
-                    case R.id.action_del:
-                        // 删除记录
-                        deleteRecord();
-                        return true;
-                }
-                return false;
+        mToolbar.setOnMenuItemClickListener(menuItem -> {
+            switch (menuItem.getItemId()) {
+                case R.id.action_done:
+                    // 保存操作
+                    saveRecord();
+                    finish();
+                    return true;
+                case R.id.action_del:
+                    // 删除记录
+                    deleteRecord();
+                    return true;
             }
+            return false;
         });
 
         mEtName = findViewById(R.id.et_product_name);
@@ -100,21 +81,15 @@ public class EditResActivity extends AppCompatActivity {
         mEtPlace.setOnTouchListener(mTouchListener);
         mEtDate.setOnTouchListener(mTouchListener);
         mEtDate.setKeyListener(null);
-        mEtDate.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    mDateFocused = true;
-                    showDatePicker();
-                }
+        mEtDate.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                mDateFocused = true;
+                showDatePicker();
             }
         });
-        mEtDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mDateFocused) {
-                    showDatePicker();
-                }
+        mEtDate.setOnClickListener(v -> {
+            if (mDateFocused) {
+                showDatePicker();
             }
         });
 
@@ -130,14 +105,11 @@ public class EditResActivity extends AppCompatActivity {
     private void showDatePicker() {
         DatePickerFragment datePickerFragment = new DatePickerFragment();
         datePickerFragment.show(getSupportFragmentManager(), "datePicker");
-        datePickerFragment.setListener(new DatePickerFragment.OnDateSetListener() {
-            @Override
-            public void onDateSet(int year, int month, int dayOfMonth) {
-                Calendar c = Calendar.getInstance();
-                c.set(year, month, dayOfMonth);
-                mPurchaseDate = c.getTime();
-                mEtDate.setText(DateUtil.toString(mPurchaseDate));
-            }
+        datePickerFragment.setListener((year, month, dayOfMonth) -> {
+            Calendar c = Calendar.getInstance();
+            c.set(year, month, dayOfMonth);
+            mPurchaseDate = c.getTime();
+            mEtDate.setText(DateUtil.toString(mPurchaseDate));
         });
     }
 
@@ -174,14 +146,11 @@ public class EditResActivity extends AppCompatActivity {
             PlaceEntity place = new PlaceEntity(placeId, pPlace);
             ProductEntity product = new ProductEntity(pName, Double.valueOf(pPrice), pDate, placeId);
 
-            mDataRepo.saveProductAndPlace(place, product, new ActionCallback<Long>() {
-                @Override
-                public void onActionDone(Long arg) {
-                    if (arg == 0) {
-                        Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_fail), Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_success), Toast.LENGTH_SHORT).show();
-                    }
+            mDataRepo.saveProductAndPlace(place, product, arg -> {
+                if (arg == 0) {
+                    Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_fail), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(EditResActivity.this, getString(R.string.toast_insert_success), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
@@ -193,14 +162,11 @@ public class EditResActivity extends AppCompatActivity {
                     mDataRepo.updatePlace(placeEntity, null);
                 }
                 ProductEntity productEntity = new ProductEntity(pName, Double.valueOf(pPrice), pDate, placeId);
-                mDataRepo.updateProduct(productEntity, new ActionCallback<Integer>() {
-                    @Override
-                    public void onActionDone(Integer arg) {
-                        if (arg == 0) {
-                            Toast.makeText(EditResActivity.this, getString(R.string.toast_update_fail), Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(EditResActivity.this, getString(R.string.toast_update_success), Toast.LENGTH_SHORT).show();
-                        }
+                mDataRepo.updateProduct(productEntity, arg -> {
+                    if (arg == 0) {
+                        Toast.makeText(EditResActivity.this, getString(R.string.toast_update_fail), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(EditResActivity.this, getString(R.string.toast_update_success), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -212,12 +178,7 @@ public class EditResActivity extends AppCompatActivity {
         if (!mRecordHasChanged) {
             super.onBackPressed();
         } else {
-            showChangeDialog(new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    finish();
-                }
-            });
+            showChangeDialog((dialog, which) -> finish());
         }
     }
 
@@ -225,12 +186,9 @@ public class EditResActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("是否放弃编辑？")
                 .setPositiveButton("放弃", discardButtonClickListener)
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (dialog != null) {
-                            dialog.dismiss();
-                        }
+                .setNegativeButton("取消", (dialog, which) -> {
+                    if (dialog != null) {
+                        dialog.dismiss();
                     }
                 })
                 .create()
@@ -238,15 +196,12 @@ public class EditResActivity extends AppCompatActivity {
     }
 
     private void deleteRecord() {
-        mDataRepo.deleteProduct(mProduct, new ActionCallback<Integer>() {
-            @Override
-            public void onActionDone(Integer arg) {
-                if (arg == 0) {
-                    Toast.makeText(EditResActivity.this, getString(R.string.toast_delete_fail), Toast.LENGTH_SHORT).show();
-                } else {
-                    finish();
-                    Toast.makeText(EditResActivity.this, getString(R.string.toast_delete_success), Toast.LENGTH_SHORT).show();
-                }
+        mDataRepo.deleteProduct(mProduct, arg -> {
+            if (arg == 0) {
+                Toast.makeText(EditResActivity.this, getString(R.string.toast_delete_fail), Toast.LENGTH_SHORT).show();
+            } else {
+                finish();
+                Toast.makeText(EditResActivity.this, getString(R.string.toast_delete_success), Toast.LENGTH_SHORT).show();
             }
         });
     }

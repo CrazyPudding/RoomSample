@@ -65,17 +65,14 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
             viewHolder.tvPlaceDesc.setText(placeDesc);
         }
 
-        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int productId = -1;
-                if (product.getId() > 0) {
-                    productId = product.getId();
-                }
-                Intent intent = new Intent(mContext, EditResActivity.class);
-                intent.putExtra(TAG_PRODUCT_ID, productId);
-                mContext.startActivity(intent);
+        viewHolder.itemView.setOnClickListener(v -> {
+            int productId = -1;
+            if (product.getId() > 0) {
+                productId = product.getId();
             }
+            Intent intent = new Intent(mContext, EditResActivity.class);
+            intent.putExtra(TAG_PRODUCT_ID, productId);
+            mContext.startActivity(intent);
         });
     }
 
